@@ -202,6 +202,9 @@ export function BookingForm() {
           <ButtonLink href="/" variant="secondary">
             Back to home
           </ButtonLink>
+          <ButtonLink href="/book/check-booking" variant="secondary">
+            Check booking status
+          </ButtonLink>
           <Button
             variant="ghost"
             onClick={() => {

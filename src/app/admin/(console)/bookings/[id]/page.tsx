@@ -32,6 +32,20 @@ type Detail = {
   tickets: { id: string; reference: string; status: string }[];
 };
 
+// Shows the photo, or a clear note when the stored file is missing (for example after the server restarts).
+function PhotoImage({ src, alt }: { src: string; alt: string }) {
+  const [missing, setMissing] = useState(false);
+  if (missing) {
+    return (
+      <p className="flex h-40 items-center justify-center px-3 text-center text-xs text-ink-muted">
+        This photo file is no longer available on the server.
+      </p>
+    );
+  }
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} className="h-40 w-full object-cover" onError={() => setMissing(true)} />;
+}
+
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -131,11 +145,9 @@ export default function BookingDetailPage() {
                 {booking.photos.map((photo) => (
                   <li key={photo.id} className="overflow-hidden rounded-xl border border-border">
                     {/* Private file served by the backend, which checks the admin session on each request. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <PhotoImage
                       src={`${API_BASE_URL}/admin/bookings/photos/${photo.id}`}
                       alt={`${photo.kind.replace(/_/g, " ")} for ${booking.reference}`}
-                      className="h-40 w-full object-cover"
                     />
                     <p className="px-3 py-2 text-xs text-ink-muted">
                       {photo.kind.replace(/_/g, " ")} · {Math.round(photo.size_bytes / 1024)} KB
