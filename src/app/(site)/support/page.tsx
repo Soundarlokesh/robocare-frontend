@@ -18,7 +18,7 @@ export default function SupportPage() {
         intro="Tell us about a problem with a visit, a repair, a delay or a bill. Your request is saved with a reference number, and our support team reviews it."
         actions={
           <>
-            <ButtonLink href="/support/raise-ticket">Raise a Support Ticket</ButtonLink>
+            <ButtonLink href="/book/check-booking">Check Booking Status</ButtonLink>
             <ButtonLink href="/support/check-ticket" variant="secondary">Check a Ticket</ButtonLink>
           </>
         }
