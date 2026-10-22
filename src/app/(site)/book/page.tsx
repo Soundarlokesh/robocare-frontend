@@ -1,5 +1,6 @@
 import { BookingForm } from "@/components/booking/booking-form";
 import { Card, Container, PageHero } from "@/components/ui/layout";
+import { ApplianceVisual } from "@/components/site/illustrations";
 
 export const metadata = {
   title: "Book Home Service",
@@ -10,6 +11,7 @@ export default function BookPage() {
   return (
     <>
       <PageHero
+        visual={<ApplianceVisual />}
         eyebrow="Home service"
         title="Book a home service request"
         intro="Tell us about your appliance and the problem. We save the request, give you a reference, and our team contacts you to confirm the visit."
@@ -20,7 +22,7 @@ export default function BookPage() {
             <BookingForm />
           </Card>
           <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <Card>
+            <Card interactive>
               <p className="font-semibold text-ink">Before you submit</p>
               <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-ink-muted">
                 <li>Have the model number and purchase year ready if you can.</li>
@@ -28,14 +30,14 @@ export default function BookPage() {
                 <li>Don&apos;t open the appliance. Unplug it and wait for the technician.</li>
               </ul>
             </Card>
-            <Card>
+            <Card interactive>
               <p className="font-semibold text-ink">Prefer to message us?</p>
               <p className="mt-2 text-sm leading-relaxed text-ink-muted">
                 Send your name, mobile number, pincode, appliance, the problem and a preferred date on WhatsApp or email. Our
                 team replies to confirm the visit. A message is a request, not a confirmed appointment.
               </p>
             </Card>
-            <Card>
+            <Card interactive>
               <p className="font-semibold text-ink">Already booked?</p>
               <p className="mt-2 text-sm leading-relaxed text-ink-muted">
                 Report a problem with an existing visit to our support team.

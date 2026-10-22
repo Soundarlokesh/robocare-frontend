@@ -54,13 +54,26 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-card">
-        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand">
+    <div className="admin-theme grid min-h-screen lg:grid-cols-[1fr_1fr]">
+      <aside className="relative hidden overflow-hidden bg-ink p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-brand/30 blur-3xl" aria-hidden="true" />
+        <div className="relative flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-sm font-bold">R</span>
+          <span className="font-semibold">RoboCare Admin</span>
+        </div>
+        <div className="relative max-w-md">
+          <h2 className="text-4xl font-semibold leading-tight tracking-tight">Run bookings, support and service from one console.</h2>
+          <p className="mt-4 leading-relaxed text-white/70">Sign in with your staff account. Access depends on your role.</p>
+        </div>
+        <p className="relative text-xs text-white/50">Staff access only. Activity is recorded.</p>
+      </aside>
+      <div className="flex items-center justify-center px-4 py-12 sm:px-8">
+      <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-8 shadow-card sm:p-10">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white shadow-sm">
           <LockKeyhole className="h-5 w-5" aria-hidden="true" />
         </span>
-        <h1 className="mt-5 text-2xl font-semibold text-ink">Admin sign in</h1>
-        <p className="mt-1 text-sm text-ink-muted">RoboCare staff only.</p>
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink">Sign in</h1>
+        <p className="mt-1 text-sm text-ink-muted">Use your RoboCare staff email and password.</p>
         <form onSubmit={onSubmit} noValidate className="mt-6 space-y-5" aria-busy={busy}>
           {serverError ? (
             <p role="alert" className="rounded-lg bg-danger-soft p-3 text-sm text-danger">
@@ -94,6 +107,7 @@ function LoginForm() {
             )}
           </Button>
         </form>
+      </div>
       </div>
     </div>
   );

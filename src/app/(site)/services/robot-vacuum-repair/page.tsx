@@ -25,6 +25,7 @@ export default function RobotVacuumRepairPage() {
   return (
     <>
       <PageHero
+        backgroundImage="/images/service-hero-bg.webp"
         eyebrow="Robot vacuum repair"
         title="Robot vacuum repair at your doorstep"
         intro="Book a home visit for your robot vacuum. A technician inspects the robot and tells you what they find before any work starts."

@@ -1,5 +1,6 @@
 import { CheckBookingForm } from "@/components/booking/check-booking-form";
 import { PageHero, Section } from "@/components/ui/layout";
+import { ApplianceVisual } from "@/components/site/illustrations";
 
 export const metadata = {
   title: "Check Your Booking",
@@ -10,6 +11,7 @@ export default function CheckBookingPage() {
   return (
     <>
       <PageHero
+        visual={<ApplianceVisual />}
         eyebrow="Booking"
         title="Check your booking"
         intro="Enter the booking reference and the mobile number you gave us, for example RC-2026-0001. You will see whether your visit is confirmed."

@@ -12,9 +12,9 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-ink/95 shadow-lg backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-ink" onClick={() => setOpen(false)}>
+        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-white" onClick={() => setOpen(false)}>
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-sm font-bold text-white">R</span>
           <span className="text-[17px]">{SITE.name}</span>
         </Link>
@@ -27,8 +27,8 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-md px-3 py-2 text-sm transition-colors hover:bg-surface-muted ${
-                  active ? "font-semibold text-brand" : "text-ink-muted hover:text-ink"
+                className={`rounded-md px-3 py-2 text-sm transition-colors hover:bg-white/10 ${
+                  active ? "font-semibold text-white" : "text-white/70 hover:text-white"
                 }`}
               >
                 {link.label}
@@ -45,7 +45,7 @@ export function Header() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface xl:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white xl:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -56,14 +56,14 @@ export function Header() {
       </div>
 
       {open ? (
-        <nav id="mobile-nav" aria-label="Mobile" className="border-t border-border bg-surface xl:hidden">
+        <nav id="mobile-nav" aria-label="Mobile" className="border-t border-white/10 bg-ink xl:hidden">
           <ul className="mx-auto flex max-w-6xl flex-col px-4 py-3 sm:px-6">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-md px-3 py-3 text-[15px] text-ink hover:bg-surface-muted"
+                  className="block rounded-md px-3 py-3 text-[15px] text-white hover:bg-white/10"
                 >
                   {link.label}
                 </Link>

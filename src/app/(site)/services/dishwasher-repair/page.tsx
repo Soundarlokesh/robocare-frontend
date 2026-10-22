@@ -24,6 +24,7 @@ export default function DishwasherRepairPage() {
   return (
     <>
       <PageHero
+        backgroundImage="/images/service-hero-bg.webp"
         eyebrow="Dishwasher repair"
         title="Dishwasher repair at your doorstep"
         intro="Book a home visit for your dishwasher. A technician inspects the appliance and explains what they find before any work starts."

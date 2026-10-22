@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, MapPin, XCircle } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 import { ApiError, getJson } from "@/lib/api";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -60,17 +60,22 @@ export function ServiceAreaList() {
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {Object.entries(byCity).map(([city, rows]) => (
-        <Card key={city}>
-          <p className="font-semibold text-ink">{city}</p>
-          <ul className="mt-3 space-y-1.5 text-sm text-ink-muted">
+        <div key={city} className="group rounded-3xl bg-white p-7 shadow-card ring-1 ring-black/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand transition group-hover:bg-brand group-hover:text-white">
+              <MapPin className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <p className="text-lg font-semibold text-ink">{city}</p>
+          </div>
+          <ul className="mt-5 flex flex-wrap gap-2">
             {rows.map((row) => (
-              <li key={`${row.city}-${row.pincode}`}>
+              <li key={`${row.city}-${row.pincode}`} className="rounded-full bg-surface-muted px-3 py-1.5 text-sm text-ink ring-1 ring-black/5">
                 {row.area ? `${row.area} · ` : ""}
                 <span className="font-mono">{row.pincode}</span>
               </li>
             ))}
           </ul>
-        </Card>
+        </div>
       ))}
     </div>
   );
@@ -107,8 +112,8 @@ export function ServiceAreaChecker() {
   const waLink = result ? whatsappLink(`Hi RoboCare, is home service available at pincode ${pincode.trim()}?`) : null;
 
   return (
-    <Card className="max-w-xl">
-      <form onSubmit={onCheck} noValidate className="space-y-4">
+    <div className="rounded-3xl bg-white p-6 shadow-card ring-1 ring-black/5 sm:p-8">
+      <form onSubmit={onCheck} noValidate className="space-y-5">
         <Field label="Your pincode" required error={inputError ?? undefined}>
           {({ id, describedBy, invalid }) => (
             <TextInput
@@ -169,6 +174,6 @@ export function ServiceAreaChecker() {
           </div>
         ) : null}
       </div>
-    </Card>
+    </div>
   );
 }

@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, ImagePlus, Loader2, TriangleAlert } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextArea, TextInput } from "@/components/ui/form-fields";
@@ -74,6 +74,16 @@ const DEFAULTS = {
   preferred_contact: "phone",
 } as unknown as FormValues;
 
+// Thumbnail of a chosen photo. The object URL is released when the photo changes or the form unmounts.
+function PhotoPreview({ file }: { file: File }) {
+  const url = useMemo(() => URL.createObjectURL(file), [file]);
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={url} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-black/5" />
+  );
+}
+
 export function RaiseTicketForm() {
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
@@ -88,19 +98,41 @@ export function RaiseTicketForm() {
     register,
     handleSubmit,
     setError,
+    control,
     reset,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: DEFAULTS, mode: "onTouched" });
+  const chosenPhotos = useWatch({ control, name: ["appliance_photo", "model_photo", "error_code_photo"] });
 
   useEffect(() => {
+    // The API can take a few seconds to wake up on the hosting plan, so retry before showing an error.
+    // A request that never answers counts as a failed attempt, so the list cannot stay on "Loading…" forever.
     let active = true;
-    getJson<Category[]>("/support/categories")
-      .then((data) => active && setCategories(data))
-      .catch((err: unknown) => {
-        if (active) setCategoryError(err instanceof ApiError ? err.message : "Issue categories could not be loaded.");
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const load = (attempt: number) => {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error("timeout")), 10000);
       });
+      Promise.race([getJson<Category[]>("/support/categories"), timeout])
+        .then((data) => {
+          clearTimeout(timeoutId);
+          if (active) setCategories(data);
+        })
+        .catch((err: unknown) => {
+          clearTimeout(timeoutId);
+          if (!active) return;
+          if (attempt < 6) {
+            retryTimer = setTimeout(() => load(attempt + 1), 3000);
+            return;
+          }
+          setCategoryError(err instanceof ApiError ? err.message : "Issue categories could not be loaded. Please try again.");
+        });
+    };
+    load(1);
     return () => {
       active = false;
+      clearTimeout(retryTimer);
     };
   }, [categoryAttempt]);
 
@@ -218,7 +250,7 @@ export function RaiseTicketForm() {
       ) : null}
 
       <fieldset className="space-y-5">
-        <legend className="text-lg font-semibold text-ink">About you</legend>
+        <legend className="mb-2 w-full border-b border-border pb-3 text-lg font-semibold tracking-tight text-ink">About you</legend>
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Your name" required error={errors.customer_name?.message}>
             {({ id, describedBy, invalid }) => (
@@ -247,7 +279,7 @@ export function RaiseTicketForm() {
       </fieldset>
 
       <fieldset className="space-y-5">
-        <legend className="text-lg font-semibold text-ink">The appliance and the issue</legend>
+        <legend className="mb-2 w-full border-b border-border pb-3 text-lg font-semibold tracking-tight text-ink">The appliance and the issue</legend>
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Appliance" required error={errors.appliance_type?.message}>
             {({ id, describedBy, invalid }) => (
@@ -294,7 +326,7 @@ export function RaiseTicketForm() {
       </fieldset>
 
       <fieldset className="space-y-5">
-        <legend className="text-lg font-semibold text-ink">Existing references (optional)</legend>
+        <legend className="mb-2 w-full border-b border-border pb-3 text-lg font-semibold tracking-tight text-ink">Existing references (optional)</legend>
         <div className="grid gap-5 md:grid-cols-3">
           <Field label="Booking reference" error={errors.booking_reference?.message} hint="e.g. RC-2026-0001">
             {({ id, describedBy, invalid }) => <TextInput id={id} invalid={invalid} describedBy={describedBy} {...register("booking_reference")} />}
@@ -309,20 +341,38 @@ export function RaiseTicketForm() {
       </fieldset>
 
       <fieldset className="space-y-5">
-        <legend className="text-lg font-semibold text-ink">Photos (optional)</legend>
+        <legend className="mb-2 w-full border-b border-border pb-3 text-lg font-semibold tracking-tight text-ink">Photos (optional)</legend>
         <p className="text-sm text-ink-muted">JPEG, PNG or WebP, up to 10 MB each.</p>
         <div className="grid gap-5 md:grid-cols-3">
-          {PHOTO_SLOTS.map((slot) => (
+          {PHOTO_SLOTS.map((slot, slotIndex) => {
+            const chosen = chosenPhotos[slotIndex]?.item(0) ?? undefined;
+            return (
             <Field key={slot.key} label={slot.label} error={errors[slot.key]?.message}>
               {({ id, describedBy, invalid }) => (
                 <label
                   htmlFor={id}
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-surface px-4 py-6 text-center text-sm text-ink-muted hover:border-brand ${
-                    invalid ? "border-danger" : "border-border"
+                  className={`group flex min-h-[9.5rem] cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed bg-white p-4 text-center text-sm text-ink-muted transition hover:border-brand hover:bg-brand-soft/40 ${
+                    invalid ? "border-danger" : chosen ? "border-brand/40" : "border-border"
                   }`}
                 >
-                  <ImagePlus className="h-6 w-6 text-brand" aria-hidden="true" />
-                  <span>Choose a photo</span>
+                  {chosen ? (
+                    <span className="flex w-full items-center gap-3 text-left">
+                      <PhotoPreview file={chosen} />
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium text-ink">{chosen.name}</span>
+                        <span className="mt-0.5 block text-xs text-ink-muted">
+                          {Math.max(1, Math.round(chosen.size / 1024))} KB · Click to change
+                        </span>
+                      </span>
+                    </span>
+                  ) : (
+                    <>
+                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand transition group-hover:bg-brand group-hover:text-white">
+                        <ImagePlus className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <span>Choose a photo</span>
+                    </>
+                  )}
                   <input
                     id={id}
                     type="file"
@@ -335,7 +385,8 @@ export function RaiseTicketForm() {
                 </label>
               )}
             </Field>
-          ))}
+            );
+          })}
         </div>
       </fieldset>
 
