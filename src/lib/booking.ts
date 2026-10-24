@@ -68,6 +68,7 @@ const MOBILE_RE = /^(\+?91|0)?[6-9]\d{9}$/;
 export const bookingSchema = z
   .object({
     full_name: z.string().trim().min(2, "Enter your full name").max(120, "Name must be 120 characters or fewer"),
+    customer_type: z.enum(["new", "existing"], { error: "Choose New Customer or Existing Customer" }),
     mobile: z
       .string()
       .trim()
@@ -109,9 +110,9 @@ export const bookingSchema = z
     preferred_time_slot: z.enum(["09:00-12:00", "12:00-15:00", "15:00-18:00", "18:00-20:00"], {
       error: "Choose a time slot",
     }),
-    appliance_photo: z.custom<FileList | undefined>(),
-    model_photo: z.custom<FileList | undefined>(),
-    error_code_photo: z.custom<FileList | undefined>(),
+    appliance_photo: z.custom<FileList | undefined>().optional(),
+    model_photo: z.custom<FileList | undefined>().optional(),
+    error_code_photo: z.custom<FileList | undefined>().optional(),
   })
   .superRefine((values, ctx) => {
     if (values.preferred_date && values.preferred_date < todayIso()) {
@@ -139,6 +140,7 @@ export type BookingFormValues = z.infer<typeof bookingSchema>;
 
 export type BookingPayload = {
   full_name: string;
+  customer_type: "new" | "existing";
   mobile: string;
   whatsapp_number?: string;
   email?: string;
@@ -160,6 +162,7 @@ export function toBookingPayload(values: BookingFormValues): BookingPayload {
   const clean = (value: string) => (value.trim() === "" ? undefined : value.trim());
   return {
     full_name: values.full_name.trim(),
+    customer_type: values.customer_type,
     mobile: values.mobile.trim(),
     whatsapp_number: clean(values.whatsapp_number),
     email: clean(values.email),
@@ -177,3 +180,6 @@ export function toBookingPayload(values: BookingFormValues): BookingPayload {
     preferred_time_slot: values.preferred_time_slot,
   };
 }
+
+// Booking form photos: appliance and model label only. The error code is entered as text instead.
+export const BOOKING_PHOTO_SLOTS = PHOTO_SLOTS.filter((slot) => slot.key !== "error_code_photo");

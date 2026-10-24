@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useApiData } from "@/components/admin/use-api-data";
-import { DataTable, ErrorBanner, Column, formatDate, PageHeader, Pagination, Panel, StatusBadge } from "@/components/admin/ui";
+import { CustomerTypeBadge, DataTable, ErrorBanner, Column, formatDate, PageHeader, Pagination, Panel, StatusBadge } from "@/components/admin/ui";
 import { TextInput, SelectInput } from "@/components/ui/form-fields";
 import { BOOKING_STATUSES } from "@/lib/admin-workflow";
 
@@ -14,6 +14,7 @@ type BookingRow = {
   brand: string;
   problem_category: string;
   customer_name: string;
+  customer_type: string;
   customer_mobile: string;
   pincode: string;
   preferred_date: string | null;
@@ -48,6 +49,7 @@ export default function BookingsPage() {
         <>
           <p className="font-medium">{row.customer_name}</p>
           <p className="text-xs text-ink-muted">{row.customer_mobile}</p>
+          <div className="mt-1"><CustomerTypeBadge value={row.customer_type} /></div>
         </>
       ),
     },

@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useApiData } from "@/components/admin/use-api-data";
-import { ErrorBanner, formatDate, formatDateTime, Loading, PageHeader, Panel, StatusBadge } from "@/components/admin/ui";
+import { CustomerTypeBadge, ErrorBanner, formatDate, formatDateTime, Loading, PageHeader, Panel, StatusBadge } from "@/components/admin/ui";
+import { BookingMessagePanel } from "@/components/admin/booking-message-panel";
+import { BookingSlotPanel } from "@/components/admin/booking-slot-panel";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { ApiError, API_BASE_URL, CSRF_HEADERS, patchJson, postJson } from "@/lib/api";
 import { BOOKING_ACTION_LABEL, BOOKING_NEXT } from "@/lib/admin-workflow";
@@ -13,6 +15,9 @@ type Detail = {
   id: string;
   reference: string;
   status: string;
+  admin_message: string | null;
+  admin_message_at: string | null;
+  customer_type: string;
   appliance_type: string;
   brand: string;
   model_number: string | null;
@@ -160,8 +165,25 @@ export default function BookingDetailPage() {
         </div>
 
         <div className="space-y-6">
+          <BookingSlotPanel
+            key={`slot-${booking.id}-${booking.preferred_date}-${booking.preferred_time_slot}`}
+            bookingId={booking.id}
+            preferredDate={booking.preferred_date}
+            preferredTimeSlot={booking.preferred_time_slot}
+            onSaved={() => detail.reload()}
+          />
+          <BookingMessagePanel
+            key={booking.id}
+            bookingId={booking.id}
+            initialMessage={booking.admin_message}
+            initialAt={booking.admin_message_at}
+            onSaved={() => detail.reload()}
+          />
           <Panel className="p-6">
-            <h2 className="font-semibold text-ink">Customer</h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-ink">Customer</h2>
+              <CustomerTypeBadge value={booking.customer_type} />
+            </div>
             <p className="mt-3 font-medium text-ink">{booking.customer.full_name}</p>
             <p className="text-sm text-ink-muted">{booking.customer.mobile}</p>
             {booking.customer.whatsapp_number ? <p className="text-sm text-ink-muted">WhatsApp {booking.customer.whatsapp_number}</p> : null}

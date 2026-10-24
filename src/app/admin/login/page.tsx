@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LockKeyhole } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -97,6 +98,11 @@ function LoginForm() {
               />
             )}
           </Field>
+          <div className="-mt-2 text-right">
+            <Link href="/admin/forgot-password" className="text-sm font-medium text-brand hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <Button type="submit" disabled={busy} className="w-full">
             {busy ? (
               <>

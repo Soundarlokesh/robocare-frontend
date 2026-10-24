@@ -26,7 +26,7 @@ export const metadata = {
 };
 
 const STEPS = [
-  { icon: MessageCircle, title: "Tell us the problem", text: "Use the booking form or chat with our assistant to describe the appliance and the issue." },
+  { icon: MessageCircle, title: "Tell us the problem", text: "Use the booking form, or message us on WhatsApp, to describe the appliance and the issue." },
   { icon: Camera, title: "Share photos (optional)", text: "Add a photo of the appliance, the model label or the error code to help us prepare." },
   { icon: CalendarCheck, title: "We confirm the visit", text: "Our service team contacts you to confirm the appointment time. Requests are not auto-confirmed." },
   { icon: Wrench, title: "Home service visit", text: "A technician inspects the appliance and explains what they find before any work starts." },

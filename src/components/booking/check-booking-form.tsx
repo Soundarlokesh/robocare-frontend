@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Search, TriangleAlert } from "lucide-react";
+import { Loader2, MessageSquare, Search, TriangleAlert } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/form-fields";
@@ -17,6 +17,7 @@ type BookingView = {
   preferred_time_slot: string | null;
   created_at: string;
   confirmed_at: string | null;
+  message: { text: string; updated_at: string } | null;
 };
 
 const APPLIANCE_LABELS: Record<string, string> = { robot_vacuum: "Robot vacuum", dishwasher: "Dishwasher" };
@@ -36,6 +37,10 @@ const SLOT_LABELS: Record<string, string> = Object.fromEntries(
 // Accepts "rc-2026-0001" and " RC-2026-0001 " and similar. Only the normalized form is sent.
 export function normalizeBookingReference(raw: string): string {
   return raw.replace(/\s+/g, "").toUpperCase();
+}
+
+function formatWhen(iso: string): string {
+  return new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 }
 
 function formatDay(iso: string): string {
@@ -188,6 +193,20 @@ export function CheckBookingForm() {
               Your visit is confirmed. Keep this reference for any questions about your visit.
             </p>
           ) : null}
+        </section>
+      ) : null}
+      {booking?.message ? (
+        <section aria-labelledby="message-heading" className="rounded-2xl border border-brand/20 bg-brand-soft/40 p-6 shadow-sm sm:p-8">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+              <MessageSquare className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h2 id="message-heading" className="font-semibold text-ink">Message from RoboCare</h2>
+              <p className="mt-0.5 text-xs text-ink-muted">Updated {formatWhen(booking.message.updated_at)}</p>
+            </div>
+          </div>
+          <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-ink">{booking.message.text}</p>
         </section>
       ) : null}
     </div>

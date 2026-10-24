@@ -46,7 +46,7 @@ const PRINCIPLES = [
   {
     icon: Headphones,
     title: "A person is always available",
-    text: "The assistant can help with simple questions. You can ask for a human through the contact page at any time.",
+    text: "Call, WhatsApp or email us at any time. A team member replies to your question, and you can always ask for a call back.",
   },
 ];
 

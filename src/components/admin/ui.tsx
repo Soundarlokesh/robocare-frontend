@@ -61,6 +61,13 @@ export function StatusBadge({ value }: { value: string }) {
   );
 }
 
+export function CustomerTypeBadge({ value }: { value: string | null | undefined }) {
+  if (value !== "new" && value !== "existing") return null;
+  const label = value === "existing" ? "Existing customer" : "New customer";
+  const tone = value === "existing" ? "bg-violet-50 text-violet-800 ring-violet-200" : "bg-teal-50 text-teal-800 ring-teal-200";
+  return <span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${tone}`}>{label}</span>;
+}
+
 export function Empty({ title, text }: { title: string; text: string }) {
   return (
     <div className="px-6 py-16 text-center">

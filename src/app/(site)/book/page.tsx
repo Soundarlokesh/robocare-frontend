@@ -1,6 +1,5 @@
 import { BookingForm } from "@/components/booking/booking-form";
 import { Card, Container, PageHero } from "@/components/ui/layout";
-import { ApplianceVisual } from "@/components/site/illustrations";
 
 export const metadata = {
   title: "Book Home Service",
@@ -11,7 +10,8 @@ export default function BookPage() {
   return (
     <>
       <PageHero
-        visual={<ApplianceVisual />}
+        backgroundImage="/images/book-hero-bg.webp"
+        backgroundClassName="object-[80%_center]"
         eyebrow="Home service"
         title="Book a home service request"
         intro="Tell us about your appliance and the problem. We save the request, give you a reference, and our team contacts you to confirm the visit."

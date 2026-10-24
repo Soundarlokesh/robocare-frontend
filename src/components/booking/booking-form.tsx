@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, ImagePlus, Loader2, TriangleAlert } from "lucide-react";
-import { type FormEvent, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Camera, CheckCircle2, ImagePlus, Loader2, RefreshCcw, Trash2, TriangleAlert } from "lucide-react";
+import { type FormEvent, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, SelectInput, TextArea, TextInput } from "@/components/ui/form-fields";
@@ -12,7 +12,7 @@ import {
   bookingSchema,
   BookingFormValues,
   maxBookingIso,
-  PHOTO_SLOTS,
+  BOOKING_PHOTO_SLOTS,
   PROBLEM_OPTIONS,
   TIME_SLOT_OPTIONS,
   todayIso,
@@ -39,6 +39,7 @@ const YEARS = Array.from({ length: new Date().getFullYear() - 1999 }, (_, index)
 // Empty strings for unanswered selects: the schema rejects them with a clear "choose" message.
 const DEFAULTS = {
   full_name: "",
+  customer_type: "",
   mobile: "",
   whatsapp_number: "",
   email: "",
@@ -58,6 +59,105 @@ const DEFAULTS = {
 
 type ServiceCheck = { state: "idle" | "checking" | "ok" | "unavailable" | "error"; message?: string };
 
+// Thumbnail of a chosen photo. The object URL is released when the photo changes or the form unmounts.
+function PhotoThumb({ file }: { file: File }) {
+  const url = useMemo(() => URL.createObjectURL(file), [file]);
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={url} alt="" className="h-40 w-full rounded-xl object-cover" />;
+}
+
+// One photo slot: gallery or files, a camera button on phones, a preview, and replace or remove.
+function PhotoSlotPicker({
+  label,
+  file,
+  error,
+  onChange,
+}: {
+  label: string;
+  file: File | undefined;
+  error?: string;
+  onChange: (files: FileList | undefined) => void;
+}) {
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+
+  function pick(event: React.ChangeEvent<HTMLInputElement>) {
+    const chosen = event.target.files?.[0];
+    event.target.value = "";
+    if (!chosen) return;
+    const transfer = new DataTransfer();
+    transfer.items.add(chosen);
+    onChange(transfer.files);
+  }
+
+  const inputClass = "sr-only";
+  const accept = "image/jpeg,image/png,image/webp";
+
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <p className="text-sm font-semibold text-ink">{label}</p>
+      <div className="mt-3">
+        {file ? (
+          <div className="space-y-3">
+            <PhotoThumb file={file} />
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-ink">{file.name}</p>
+                <p className="text-xs text-ink-muted">{Math.max(1, Math.round(file.size / 1024))} KB</p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  onClick={() => galleryRef.current?.click()}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium text-ink hover:bg-surface-muted"
+                >
+                  <RefreshCcw className="h-4 w-4" aria-hidden="true" /> Replace
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChange(undefined)}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-danger/30 px-3 text-sm font-medium text-danger hover:bg-danger-soft"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" /> Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 rounded-xl border-2 border-dashed border-border bg-surface px-4 py-6 text-center">
+            <ImagePlus className="mx-auto h-6 w-6 text-brand" aria-hidden="true" />
+            <p className="text-sm text-ink-muted">JPEG, PNG or WebP, up to 10 MB</p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={() => galleryRef.current?.click()}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-semibold text-ink hover:bg-surface-muted"
+              >
+                <ImagePlus className="h-4 w-4 text-brand" aria-hidden="true" /> Choose from device
+              </button>
+              <button
+                type="button"
+                onClick={() => cameraRef.current?.click()}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-strong"
+              >
+                <Camera className="h-4 w-4" aria-hidden="true" /> Take photo
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <input ref={galleryRef} type="file" accept={accept} className={inputClass} onChange={pick} aria-label={`${label}: choose from device`} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className={inputClass} onChange={pick} aria-label={`${label}: take photo`} />
+      {error ? (
+        <p role="alert" className="mt-2 text-sm text-danger">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function BookingForm() {
   const [phase, setPhase] = useState<"editing" | "submitting" | "done">("editing");
   const [serverError, setServerError] = useState<string | null>(null);
@@ -74,6 +174,7 @@ export function BookingForm() {
     setError,
     reset,
     control,
+    setValue,
     formState: { errors },
   } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
@@ -82,6 +183,7 @@ export function BookingForm() {
   });
 
   const appliance = useWatch({ control, name: "appliance_type" });
+  const chosenPhotos = useWatch({ control, name: BOOKING_PHOTO_SLOTS.map((slot) => slot.key) });
   // Booking window limits are set in the browser after load, so they are always current (never frozen at build time).
   const todayKey = useSyncExternalStore(noopSubscribe, todayIso, serverDateKey);
   // Brand suggestions come from the brands the admin has added to each product. Customers can still type any brand.
@@ -138,7 +240,7 @@ export function BookingForm() {
       });
 
       const failedPhotos: string[] = [];
-      for (const slot of PHOTO_SLOTS) {
+      for (const slot of BOOKING_PHOTO_SLOTS) {
         const file = values[slot.key]?.item(0);
         if (!file) continue;
         const form = new FormData();
@@ -236,6 +338,31 @@ export function BookingForm() {
 
       <fieldset className="space-y-5">
         <legend className="text-lg font-semibold text-ink">Your details</legend>
+        <fieldset className="space-y-3">
+          <legend className="text-sm font-semibold text-ink">
+            Customer type <span className="text-danger" aria-hidden="true">*</span>
+          </legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { value: "new", title: "New Customer", text: "First time booking with RoboCare" },
+              { value: "existing", title: "Existing Customer", text: "Booked with RoboCare before" },
+            ].map((option) => (
+              <label
+                key={option.value}
+                className="flex min-h-11 cursor-pointer gap-3 rounded-xl border border-border bg-surface p-4 transition hover:border-brand has-[:checked]:border-brand has-[:checked]:bg-brand-soft/50"
+              >
+                <input type="radio" value={option.value} className="mt-1 h-4 w-4 accent-[var(--brand)]" {...register("customer_type")} />
+                <span>
+                  <span className="block font-semibold text-ink">{option.title}</span>
+                  <span className="block text-sm text-ink-muted">{option.text}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {errors.customer_type?.message ? (
+            <p role="alert" className="text-sm text-danger">{errors.customer_type.message}</p>
+          ) : null}
+        </fieldset>
         <div className="grid gap-5 md:grid-cols-2">
           <Field label="Full name" required error={errors.full_name?.message}>
             {({ id, describedBy, invalid }) => (
@@ -445,30 +572,15 @@ export function BookingForm() {
       <fieldset className="space-y-5">
         <legend className="text-lg font-semibold text-ink">Photos (optional)</legend>
         <p className="text-sm text-ink-muted">JPEG, PNG or WebP, up to 10 MB each.</p>
-        <div className="grid gap-5 md:grid-cols-3">
-          {PHOTO_SLOTS.map((slot) => (
-            <Field key={slot.key} label={slot.label} error={errors[slot.key]?.message}>
-              {({ id, describedBy, invalid }) => (
-                <label
-                  htmlFor={id}
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-surface px-4 py-6 text-center text-sm text-ink-muted hover:border-brand ${
-                    invalid ? "border-danger" : "border-border"
-                  }`}
-                >
-                  <ImagePlus className="h-6 w-6 text-brand" aria-hidden="true" />
-                  <span>Choose a photo</span>
-                  <input
-                    id={id}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    aria-describedby={describedBy}
-                    aria-invalid={invalid || undefined}
-                    {...register(slot.key)}
-                  />
-                </label>
-              )}
-            </Field>
+        <div className="grid gap-5 md:grid-cols-2">
+          {BOOKING_PHOTO_SLOTS.map((slot) => (
+            <PhotoSlotPicker
+              key={slot.key}
+              label={slot.label}
+              file={chosenPhotos[BOOKING_PHOTO_SLOTS.findIndex((item) => item.key === slot.key)]?.item(0) ?? undefined}
+              error={errors[slot.key]?.message}
+              onChange={(files) => setValue(slot.key, files, { shouldValidate: true })}
+            />
           ))}
         </div>
       </fieldset>
